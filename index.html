@@ -9,7 +9,6 @@
     /*have to use the fileInput API because browser security restrictions 
     restrict acess to the local filesystem unless explicitly entered by the user
     **/
-      const reader = new FileReader(); //
       document.getElementById('fileInput').addEventListener("change", async (e) => {
   
         if(e.target.files[0]){
