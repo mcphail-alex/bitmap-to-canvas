@@ -2,9 +2,73 @@
 <html lang="en">
 <head><title>PGMA Render</title></head>
 <body>
+  <input type="file" id="fileInput">
+  <pre id="fileContent"></pre>
   <canvas id="canvas"></canvas>
   <script>
-    // code goes here
+    /*have to use the fileInput API because browser security restrictions 
+    restrict acess to the local filesystem unless explicitly entered by the user
+    **/
+      const reader = new FileReader(); //
+      document.getElementById('fileInput').addEventListener("change", async (e) => {
+  
+        if(e.target.files[0]){
+          const reader = new FileReader();
+          reader.readAsText(e.target.files[0]);
+          /* Because the FileReader reads in asynchronously, we need to wait tof the File Reader to give the ok that it is loaded before we convert it for rendering*/
+          reader.onload = async (e) => {
+            const splitArray = e.target.result.split('\n');
+            /* 0 - 'p2' - magic number
+               1 - # -- comment
+               2 - width height
+               3 - max #
+               4 and on - pixel values 
+            */
+            //double check that this is the correct file format
+            if(splitArray[0] == 'P2'){
+              const [width, height] = splitArray[2].split(' ').map(el => Number(el));
+              const maxNumber = Number(splitArray[3]);
+              //console.log(e.target.result)
+              /**
+               * TODO - clean up time complexity here - 
+               * can we combine steps to reduce iterations -- is this all even necessary
+               * or can we combine steps when iterating later
+              */
+              const pixels = splitArray.slice(4).map(el => {
+                /**
+                 * The spacing in the text file proved tricky - 
+                 * split the string by spaces and then remove empty elements (caused by double spaces for formatting in the text file)
+                 * then convert the strings to numbers and then flatten all the subarrays of rows to one array
+                */
+                return el.split(' ').filter(a => a != '').map(el => Number(el))
+              }).flat();
+        
+              /*Now that we have the pixels in an iterable we can start to create the ImageData to paste to canvas
+              */
+              const canvas = document.querySelector('canvas');
+              canvas.height = height;
+              canvas.width = width;
+          
+              /**we have to get the context we are actually drawing to */
+              const context = canvas.getContext('2d');
+              
+              const imageData = context.createImageData(width, height)
+              console.log(imageData.colorSpace)
+              /**
+               * Each pixel in the uint8Clamped array tracks to 4 elements in the the imageData array because it requires RGBA for each pixel -- according to MDN, 
+              */
+              pixels.forEach((el, i) => {
+                let dataIndex = i * 4;
+                imageData.data[dataIndex] = el;
+                imageData.data[++dataIndex] = el;
+                imageData.data[++dataIndex] = el;
+                imageData.data[++dataIndex] = maxNumber //the max opacity for each pixel
+              })
+              context.putImageData(imageData, 0, 0)
+            }
+          };
+        }
+      })
   </script>
 </body>
 </html>
