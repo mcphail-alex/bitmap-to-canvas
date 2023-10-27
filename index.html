@@ -56,12 +56,14 @@
               /**
                * Each pixel in the uint8Clamped array tracks to 4 elements in the the imageData array because it requires RGBA for each pixel -- according to MDN, 
               */
+              //multiplier to map the numbers from ascii to the 0-255 range needed for RGB 
+              const multiplier = 255/maxNumber;
               pixels.forEach((el, i) => {
                 let dataIndex = i * 4;
-                imageData.data[dataIndex] = el;
-                imageData.data[++dataIndex] = el;
-                imageData.data[++dataIndex] = el;
-                imageData.data[++dataIndex] = maxNumber //the max opacity for each pixel
+                imageData.data[dataIndex] = Math.floor(multiplier * el);
+                imageData.data[++dataIndex] = Math.floor(multiplier * el);
+                imageData.data[++dataIndex] = Math.floor(multiplier * el);
+                imageData.data[++dataIndex] = 255 //the max opacity for each pixel
               })
               context.putImageData(imageData, 0, 0)
             }
